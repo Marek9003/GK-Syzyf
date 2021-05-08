@@ -7,7 +7,9 @@ public class Block : MonoBehaviour
 {
     public Transform BlockPrototype;
     private Vector3 nextBlockPrototype;
+    public PlayerMovement playermovement;
 
+   
     // Start is called before the first frame update
     void Start()
     {
@@ -50,7 +52,13 @@ public class Block : MonoBehaviour
 
         //nextBlockPrototype = position;
 
+        
 
         StartCoroutine(spawnCube());
-    }
+
+
+        
+
+    
+}
 }

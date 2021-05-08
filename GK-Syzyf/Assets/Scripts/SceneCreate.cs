@@ -2,12 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class SceneCreate : MonoBehaviour
 {
     public Transform Plane;
     private Vector3 nextPlaneSpawn;
-
-
+    public PlayerMovement playermovement;
+    
 
     // Start is called before the first frame update
     void Start()
