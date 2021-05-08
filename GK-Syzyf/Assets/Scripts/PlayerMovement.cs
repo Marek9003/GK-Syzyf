@@ -4,7 +4,7 @@ public class PlayerMovement : MonoBehaviour
 {
     public float speed = 25;
     public Rigidbody rb;
-
+    public Animator anim;
     float horizontalInput;
     public float horizontalMultiplier = 2;
 
