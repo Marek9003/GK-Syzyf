@@ -1,53 +1,47 @@
+// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
+
 Shader "Unlit/AleksanderShader"
 {
-    Properties
-    {
-        _MainTexture ("Texture", 2D) = "white" {}
-        //RGBA
-        _Color("Colour", Color) = (1,1,1,1)
-    }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
-        LOD 100
-
         Pass
         {
             CGPROGRAM
-            #pragma vertex vertexFunction
-            #pragma fragment fragmentFunction
-
+            #pragma vertex vert
+            #pragma fragment frag
             #include "UnityCG.cginc"
 
-            struct appdata
-            {
-                float4 vertex : POSITION;
-                float2 uv : TEXCOORD0;
+            struct v2f {
+                half3 worldRefl : TEXCOORD0;
+                float4 pos : SV_POSITION;
             };
 
-            struct v2f
+            v2f vert(float4 vertex : POSITION, float3 normal : NORMAL)
             {
-                float4 vertexPosition : SV_POSITION;
-                float2 uv : TEXCOORD0;
-            };
-
-            fixed4 _Color;
-            sampler2D _MainTexture;
-
-            v2f vertexFunction(appdata IN)
-            {
-                v2f OUT;
-                OUT.vertexPosition = UnityObjectToClipPos(IN.vertex);
-                OUT.uv = IN.uv;
-                return OUT;
+                v2f o;
+                o.pos = UnityObjectToClipPos(vertex);
+                // compute world space position of the vertex
+                float3 worldPos = mul(unity_ObjectToWorld, vertex).xyz;
+                // compute world space view direction
+                float3 worldViewDir = normalize(UnityWorldSpaceViewDir(worldPos));
+                // world space normal
+                float3 worldNormal = UnityObjectToWorldNormal(normal);
+                // world space reflection vector
+                o.worldRefl = reflect(-worldViewDir, worldNormal);
+                return o;
             }
 
-            fixed4 fragmentFunction(v2f IN) : SV_Target
+            fixed4 frag(v2f i) : SV_Target
             {
-                fixed4 pixelColor = tex2D(_MainTexture, IN.uv);
-                return pixelColor * _Color;
+                // sample the default reflection cubemap, using the reflection vector
+                half4 skyData = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, i.worldRefl);
+                // decode cubemap data into actual color
+                half3 skyColor = DecodeHDR(skyData, unity_SpecCube0_HDR);
+                // output it!
+                fixed4 c = 0;
+                c.rgb = skyColor;
+                return c;
             }
-
             ENDCG
         }
     }
