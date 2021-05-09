@@ -9,8 +9,7 @@ public class rock : MonoBehaviour
         string collisionObjectName = collision.collider.gameObject.tag;
         if (collisionObjectName == "Finish")
         {
-            // dodac infomracje ile czasu minelo
-
+            Time.timeScale = 0;
         }
     }
 }

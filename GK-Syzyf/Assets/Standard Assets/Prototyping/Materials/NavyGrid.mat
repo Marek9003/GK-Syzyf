@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: NavyGrid
-  m_Shader: {fileID: 4800000, guid: fcd8c8149ad52784ca593fc3f349feed, type: 3}
+  m_Shader: {fileID: 4800000, guid: 2d005b0637b387b4eb4af393317f53c7, type: 3}
   m_ShaderKeywords: _EMISSION _EMISSIONMAP _LIGHTMAPPING_DYNAMIC_LIGHTMAPS _LIGHTMAPPING_REALTIME
     _UVSEC_UV1
   m_LightmapFlags: 0
@@ -49,7 +49,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 9c4d7ee42c7d4f944b2ce9d370fa265c, type: 3}
+        m_Texture: {fileID: 2800000, guid: 580615edf5e29d245af58fc5fe2b06ac, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -96,6 +96,7 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.1
     - _GlossyReflections: 1
+    - _Glow: 1
     - _Lightmapping: 1
     - _Metallic: 0.1
     - _Mode: 0

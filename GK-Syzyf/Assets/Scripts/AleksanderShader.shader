@@ -1,8 +1,14 @@
 // Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
 
-Shader "Unlit/AleksanderShader"
+Shader "Unlit/AleksanderNowak"
 {
-    SubShader
+    Properties{
+        // three textures we'll use in the material
+        _MainTex("Base texture", 2D) = "white" {}
+        _OcclusionMap("Occlusion", 2D) = "white" {}
+        _BumpMap("Normal Map", 2D) = "bump" {}
+    }
+        SubShader
     {
         Pass
         {
@@ -12,34 +18,52 @@ Shader "Unlit/AleksanderShader"
             #include "UnityCG.cginc"
 
             struct v2f {
-                half3 worldRefl : TEXCOORD0;
+                float3 worldPos : TEXCOORD0;
+                half3 tspace0 : TEXCOORD1;
+                half3 tspace1 : TEXCOORD2;
+                half3 tspace2 : TEXCOORD3;
+                float2 uv : TEXCOORD4;
                 float4 pos : SV_POSITION;
             };
-
-            v2f vert(float4 vertex : POSITION, float3 normal : NORMAL)
+            v2f vert(float4 vertex : POSITION, float3 normal : NORMAL, float4 tangent : TANGENT, float2 uv : TEXCOORD0)
             {
                 v2f o;
                 o.pos = UnityObjectToClipPos(vertex);
-                // compute world space position of the vertex
-                float3 worldPos = mul(unity_ObjectToWorld, vertex).xyz;
-                // compute world space view direction
-                float3 worldViewDir = normalize(UnityWorldSpaceViewDir(worldPos));
-                // world space normal
-                float3 worldNormal = UnityObjectToWorldNormal(normal);
-                // world space reflection vector
-                o.worldRefl = reflect(-worldViewDir, worldNormal);
+                o.worldPos = mul(unity_ObjectToWorld, vertex).xyz;
+                half3 wNormal = UnityObjectToWorldNormal(normal);
+                half3 wTangent = UnityObjectToWorldDir(tangent.xyz);
+                half tangentSign = tangent.w * unity_WorldTransformParams.w;
+                half3 wBitangent = cross(wNormal, wTangent) * tangentSign;
+                o.tspace0 = half3(wTangent.x, wBitangent.x, wNormal.x);
+                o.tspace1 = half3(wTangent.y, wBitangent.y, wNormal.y);
+                o.tspace2 = half3(wTangent.z, wBitangent.z, wNormal.z);
+                o.uv = uv;
                 return o;
             }
 
+            sampler2D _MainTex;
+            sampler2D _OcclusionMap;
+            sampler2D _BumpMap;
+
             fixed4 frag(v2f i) : SV_Target
             {
-                // sample the default reflection cubemap, using the reflection vector
-                half4 skyData = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, i.worldRefl);
-                // decode cubemap data into actual color
+                half3 tnormal = UnpackNormal(tex2D(_BumpMap, i.uv));
+                half3 worldNormal;
+                worldNormal.x = dot(i.tspace0, tnormal);
+                worldNormal.y = dot(i.tspace1, tnormal);
+                worldNormal.z = dot(i.tspace2, tnormal);
+                half3 worldViewDir = normalize(UnityWorldSpaceViewDir(i.worldPos));
+                half3 worldRefl = reflect(-worldViewDir, worldNormal);
+                half4 skyData = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, worldRefl);
                 half3 skyColor = DecodeHDR(skyData, unity_SpecCube0_HDR);
-                // output it!
                 fixed4 c = 0;
                 c.rgb = skyColor;
+
+                fixed3 baseColor = tex2D(_MainTex, i.uv).rgb;
+                fixed occlusion = tex2D(_OcclusionMap, i.uv).r;
+                c.rgb *= baseColor;
+                c.rgb *= occlusion;
+
                 return c;
             }
             ENDCG
